@@ -1,6 +1,15 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Login from "./login";
+
+jest.mock("axios", () => ({
+  __esModule: true,
+  default: {
+    get: () => ({
+      data: { id: 1, name: "John" },
+    }),
+  },
+}));
 
 //TESTS FOR RENDERING AND CONTENT
 test("username placeholder input should be rendered", () => {
@@ -34,7 +43,7 @@ test("password input should be empty on rendering", () => {
 });
 
 //TEST FOR FUNCTIONNALITY
-test("if username or password are empty, button is disabled", () => {
+test("if username or password inputs are empty, button is disabled", () => {
   render(<Login />);
   const loginButton = screen.getByRole("button");
   expect(loginButton).toBeDisabled();
@@ -62,4 +71,50 @@ test("password value should change on input", () => {
 
   fireEvent.change(passwordInput, { target: { value: testValue } });
   expect(passwordInput.value).toBe(testValue);
+});
+
+test("login button should not be disabled when username and password input both exist", () => {
+  render(<Login />);
+  const usernameInput = screen.getByPlaceholderText(/username/i);
+  const passwordInput = screen.getByPlaceholderText(/password/i);
+  const loginButton = screen.getByRole("button");
+  const testValue = "test";
+
+  fireEvent.change(usernameInput, { target: { value: testValue } });
+  fireEvent.change(passwordInput, { target: { value: testValue } });
+  expect(loginButton).not.toBeDisabled();
+});
+
+test("Please wait should not be rendered", () => {
+  render(<Login />);
+  const loginButton = screen.getByRole("button");
+  expect(loginButton.value).toBe("Login");
+});
+
+test("Login button should become Please Wait when fetching data", () => {
+  render(<Login />);
+  const usernameInput = screen.getByPlaceholderText(/username/i);
+  const passwordInput = screen.getByPlaceholderText(/password/i);
+  const loginButton = screen.getByRole("button");
+  const testValue = "test";
+
+  fireEvent.change(usernameInput, { target: { value: testValue } });
+  fireEvent.change(passwordInput, { target: { value: testValue } });
+  fireEvent.click(loginButton);
+
+  expect(loginButton.value).toBe("Please wait...");
+});
+
+test("Login button should become Disconnect when user is connected", async () => {
+  render(<Login />);
+  const usernameInput = screen.getByPlaceholderText(/username/i);
+  const passwordInput = screen.getByPlaceholderText(/password/i);
+  const loginButton = screen.getByRole("button");
+  const testValue = "test";
+
+  fireEvent.change(usernameInput, { target: { value: testValue } });
+  fireEvent.change(passwordInput, { target: { value: testValue } });
+  fireEvent.click(loginButton);
+
+  await waitFor(() => expect(loginButton.value).toBe("Disconnect"));
 });
