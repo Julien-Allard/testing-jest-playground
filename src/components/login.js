@@ -24,12 +24,18 @@ const Login = () => {
       setIsLoading(false);
     } else {
       setData(null);
+      setUsername("");
+      setPassword("");
     }
   };
 
   return (
     <div className="form-page">
-      <span className="welcome">{data && `Welcome ${data.name} !`}</span>
+      {data && (
+        <span className="welcome" data-testid="username-text">
+          Welcome {data.name} !
+        </span>
+      )}
       <form>
         <input
           type="text"

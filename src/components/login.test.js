@@ -118,3 +118,19 @@ test("Login button should become Disconnect when user is connected", async () =>
 
   await waitFor(() => expect(loginButton.value).toBe("Disconnect"));
 });
+
+test("Username should be rendered on top of inputs when connected", async () => {
+  render(<Login />);
+  const usernameInput = screen.getByPlaceholderText(/username/i);
+  const passwordInput = screen.getByPlaceholderText(/password/i);
+  const loginButton = screen.getByRole("button");
+  const testValue = "test";
+
+  fireEvent.change(usernameInput, { target: { value: testValue } });
+  fireEvent.change(passwordInput, { target: { value: testValue } });
+  fireEvent.click(loginButton);
+
+  const usernameText = await screen.findByTestId("username-text");
+
+  await waitFor(() => expect(usernameText).toBeInTheDocument());
+});
